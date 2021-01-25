@@ -169,24 +169,24 @@ class UI(QDialog):
                 output_devices.append(device["name"])
             except Exception as e:
                 # Log a warning only if the device is not an input
-                if not device["name"] in input_devices:
+                if device["name"] not in input_devices:
                     warn("Unsupported output device %s for the sample rate: %d \nError: %s" % (device["name"], sample_rate, str(e)))
 
-        if len(input_devices) == 0:
-            self.log("No audio input device detected. Recording may not work.")
-            self.audio_in_device = None
-        else:
+        if input_devices:
             self.audio_in_device = input_devices[0]
 
-        if len(output_devices) == 0:
-            self.log("No supported output audio devices were found! Audio output may not work.")
-            self.audio_out_devices_cb.addItems(["None"])
-            self.audio_out_devices_cb.setDisabled(True)
         else:
+            self.log("No audio input device detected. Recording may not work.")
+            self.audio_in_device = None
+        if output_devices:
             self.audio_out_devices_cb.clear()
             self.audio_out_devices_cb.addItems(output_devices)
             self.audio_out_devices_cb.currentTextChanged.connect(self.set_audio_device)
 
+        else:
+            self.log("No supported output audio devices were found! Audio output may not work.")
+            self.audio_out_devices_cb.addItems(["None"])
+            self.audio_out_devices_cb.setDisabled(True)
         self.set_audio_device()
 
     def set_audio_device(self):
@@ -339,14 +339,14 @@ class UI(QDialog):
                         vocoder_models_dir: Path):
         # Encoder
         encoder_fpaths = list(encoder_models_dir.glob("*.pt"))
-        if len(encoder_fpaths) == 0:
+        if not encoder_fpaths:
             raise Exception("No encoder models found in %s" % encoder_models_dir)
         self.repopulate_box(self.encoder_box, [(f.stem, f) for f in encoder_fpaths])
-        
+
         # Synthesizer
         synthesizer_model_dirs = list(synthesizer_models_dir.glob("*"))
         synthesizer_items = [(f.name.replace("logs-", ""), f) for f in synthesizer_model_dirs]
-        if len(synthesizer_model_dirs) == 0:
+        if not synthesizer_model_dirs:
             raise Exception("No synthesizer models found in %s. For the synthesizer, the expected "
                             "structure is <syn_models_dir>/logs-<model_name>/taco_pretrained/"
                             "checkpoint" % synthesizer_models_dir)

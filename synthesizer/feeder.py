@@ -59,10 +59,7 @@ class Feeder:
 		self._pad = 0
 		#explicitely setting the padding to a value that doesn"t originally exist in the spectogram
 		#to avoid any possible conflicts, without affecting the output range of the model too much
-		if hparams.symmetric_mels:
-			self._target_pad = -hparams.max_abs_value
-		else:
-			self._target_pad = 0.
+		self._target_pad = -hparams.max_abs_value if hparams.symmetric_mels else 0.
 		#Mark finished sequences with 1s
 		self._token_pad = 1.
 
@@ -78,7 +75,7 @@ class Feeder:
 				tf.compat.v1.placeholder(tf.int32, shape=(None, ), name="targets_lengths"),
 				tf.compat.v1.placeholder(tf.int32, shape=(hparams.tacotron_num_gpus, None), 
 							   name="split_infos"),
-				
+
 				# SV2TTS
 				tf.compat.v1.placeholder(tf.float32, shape=(None, hparams.speaker_embedding_size), 
 							   name="speaker_embeddings")
